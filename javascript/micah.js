@@ -1,59 +1,13 @@
+//let's get this started
 function testMe()
 {
-	console.log( "hi" );
-	var myCalendar = $('#calendar').fullCalendar(
-	{
-        header:
-		{
-			left: 'month,agendaWeek,agendaDay'
-		},
-		height: 500,
-		editable: true,
-		durationEditable: true,
-		weekends: false,
-		events:
-		[
-			{
-				title: 'Failing Successfully',
-				start: moment(),
-				description: '<p>A presentation on the philosophy of how failing can change your life.</p>',
-				attendees: [{firstName:'John',lastName: 'Smitty'}]
-			}
-		],
-		dayClick: function()
-		{
-			//alert('a day has been clicked!');
-			console.log("clicked");
-			switchToDay();
-		},
-		eventResize: function(event, dayDelta, minuteDelta, revertFunc){
-            updateEvent(event);
-        },
-		eventClick: function (event, jsEvent, view) {
-			//set the values and open the modal
-			console.log( event );
-			$("#eventInfo").html(event.description);
-			$("#eventStartTime").html("<p>"+moment(event.start).format()+"</p>");
-			$("#eventAttendees").html("<p>"+event.attendees[0].firstName+"</p>");
-			$("#eventLink").attr('href', 'modify-event-micah.html?id='+event._id);
-			$("#eventContent").dialog({
-				modal: false,
-				title: event.title
-			});
-			return false;
-		}
-    });
-	
-	console.log( myCalendar );
-}
 
-function switchToDay()
-{
 	
 }
 
+//no idea what this does yet
 function updateEvent(the_event) {
-    $.update(
+    jQuery.update(
       "/events/" + the_event.id,
       { event: { title: the_event.title,
                  starts_at: "" + the_event.start,
@@ -65,13 +19,59 @@ function updateEvent(the_event) {
     );
 };
 
-function getParam(paramName)
+//send the name of the parameter to get it's value
+function getParamValue(paramName)
 {
+	//log( window.location.search );
 	var params={};
+	
+	//this regex was stolen from stack overflow http://stackoverflow.com/questions/19491336/get-url-parameter-jquery-or-how-to-get-query-string-values-in-js
 	window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi,
 		function(str,key,value)
 		{
 			params[key] = value;
 		}
 	);
+	//log( params[paramName] );
+	
+	return params[paramName];
+}
+
+function saveCalendarMicah(calendarName, eventsObject)
+{
+	localStorage.setItem(calendarName, JSON.stringify(eventsObject));
+}
+function getCalendarMicah(calendarName)
+{
+	console.log( JSON.parse(localStorage.getItem(calendarName)) );
+	return JSON.parse( localStorage.getItem(calendarName));
+}
+
+//adding a new event to the existing event calendar
+function addEventToCalendarMicah(calendarName)
+{
+	log( jQuery('#newTitle') );
+	var newTitle = '"title":"'+jQuery('#newTitle')[0].value+'"';
+	log( newTitle );
+	log( calendarName );
+	
+	var myCalendar = getCalendarEvents( calendarName );
+	//need to find the next available eventid, deleted events need to be accounted for
+log("checking myCalendar");
+log(myCalendar);
+	var newEventid = 0;
+	for(var i=0; i<myCalendar.length; i++)
+	{
+		if(newEventid < myCalendar[i].eventid)
+			newEventid = myCalendar[i].eventid;
+	}
+	//we now have the highest known eventid, so increment it by one
+	newEventid++;
+
+	var newIndex = myCalendar.length;
+	
+	myCalendar[newIndex] = JSON.parse( '{"eventid":"'+newEventid+'",'+newTitle+'}' );
+	log( myCalendar[newIndex] );
+	
+	saveCalendarEvents( calendarName, myCalendar);
 }
